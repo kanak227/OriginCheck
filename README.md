@@ -1,10 +1,10 @@
-# CheckOrigin: AI vs. Human Text Identification System
+# OriginCheck: AI vs. Human Text Identification System
 
-CheckOrigin is a research-driven project designed to distinguish between human-authored text and AI-generated content. By leveraging a hybrid neural network architecture that combines structural linguistic analysis with deep semantic processing, CheckOrigin achieves high accuracy in identifying the source of textual content.
+OriginCheck is a research-driven project designed to distinguish between human-authored text and AI-generated content. By leveraging a hybrid neural network architecture that combines structural linguistic analysis with deep semantic processing, OriginCheck achieves high accuracy in identifying the source of textual content.
 
 ## Project Overview
 
-In the era of Large Language Models (LLMs), the boundary between human and machine-generated content is increasingly blurred. CheckOrigin addresses this challenge by analyzing not just the semantic content, but also the "linguistic fingerprints"—statistical and structural patterns unique to human writing versus algorithmic generation.
+In the era of Large Language Models (LLMs), the boundary between human and machine-generated content is increasingly blurred. OriginCheck addresses this challenge by analyzing not just the semantic content, but also the "linguistic fingerprints"—statistical and structural patterns unique to human writing versus algorithmic generation.
 
 ### Core Features
 
@@ -40,8 +40,8 @@ This research focuses on the integration of statistical linguistic features into
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/CheckOrigin.git
-cd CheckOrigin
+git clone https://github.com/your-username/OriginCheck.git
+cd OriginCheck
 
 # Install dependencies
 pip install -r requirements.txt
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 
 #### Machine Learning Pipeline
 To train or evaluate the model, you can use the provided scripts:
-- `train.py`: Train the CheckOrigin hybrid model.
+- `train.py`: Train the OriginCheck hybrid model.
 - `evaluate.py`: Test the model against new datasets.
 
 #### Web Interface
@@ -62,7 +62,7 @@ streamlit run app.py
 
 ## Results
 
-CheckOrigin has been validated against multiple datasets, including the Reddit filtered dataset and Kaggle AI-Human text benchmarks. It demonstrates robust performance across different writing styles and topics.
+OriginCheck has been validated against multiple datasets, including the Reddit filtered dataset and Kaggle AI-Human text benchmarks. It demonstrates robust performance across different writing styles and topics.
 
 | Metric | Score |
 |--------|-------|
