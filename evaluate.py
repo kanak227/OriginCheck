@@ -2,6 +2,15 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
+import sys
+
+# Workaround for Keras 3 pickle load compatibility with Keras 2 tokenizer
+try:
+    import keras.src.legacy.preprocessing.text
+    sys.modules['keras.src.preprocessing.text'] = keras.src.legacy.preprocessing.text
+except ImportError:
+    pass
+
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from tensorflow.keras.models import load_model
 from src.utils import get_linguistic_features, preprocess_text
