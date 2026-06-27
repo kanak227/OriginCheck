@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import os
 import sys
+import onnxruntime as ort
 
 # Workaround for Keras 3 pickle load compatibility with Keras 2 tokenizer
 try:
@@ -11,12 +12,11 @@ try:
 except ImportError:
     pass
 
-from tensorflow.keras.models import load_model
 from src.utils import get_linguistic_features, preprocess_text
 
 # Configuration
 MAX_SEQ_LENGTH = 250
-MODEL_PATH = 'models/checkorigin_model.h5'
+MODEL_PATH = 'models/checkorigin_model.onnx'
 TOKENIZER_PATH = 'models/tokenizer.pickle'
 
 st.set_page_config(
@@ -62,10 +62,10 @@ def load_resources():
     if not os.path.exists(MODEL_PATH) or not os.path.exists(TOKENIZER_PATH):
         return None, None
     
-    model = load_model(MODEL_PATH)
+    session = ort.InferenceSession(MODEL_PATH)
     with open(TOKENIZER_PATH, 'rb') as handle:
         tokenizer = pickle.load(handle)
-    return model, tokenizer
+    return session, tokenizer
 
 def main():
     st.title("🔍 CheckOrigin")
@@ -87,7 +87,9 @@ def main():
             with st.spinner("Analyzing linguistic patterns..."):
                 # Determine expected linguistic feature count from model
                 try:
-                    num_ling_features = model.input[1].shape[1]
+                    num_ling_features = model.get_inputs()[1].shape[1]
+                    if isinstance(num_ling_features, str) or num_ling_features is None:
+                        num_ling_features = 2
                 except:
                     num_ling_features = 2 # Fallback to original
                 
@@ -96,7 +98,15 @@ def main():
                 ling_features = get_linguistic_features(user_input, num_features=num_ling_features).reshape(1, num_ling_features)
                 
                 # Predict
-                prediction = model.predict([padded_seq, ling_features])[0][0]
+                input_name_1 = model.get_inputs()[0].name
+                input_name_2 = model.get_inputs()[1].name
+                output_name = model.get_outputs()[0].name
+                
+                padded_seq_onnx = padded_seq.astype(np.int32)
+                ling_features_onnx = ling_features.astype(np.float32)
+                
+                outputs = model.run([output_name], {input_name_1: padded_seq_onnx, input_name_2: ling_features_onnx})
+                prediction = float(outputs[0][0][0])
                 
                 # Display Results
                 st.divider()

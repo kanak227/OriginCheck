@@ -1,5 +1,23 @@
 import numpy as np
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+def pad_sequences(sequences, maxlen, padding='post', truncating='post', value=0):
+    """
+    Pads sequences to the same length.
+    """
+    padded_sequences = []
+    for seq in sequences:
+        if len(seq) > maxlen:
+            if truncating == 'pre':
+                seq = seq[-maxlen:]
+            else:
+                seq = seq[:maxlen]
+        elif len(seq) < maxlen:
+            pad_len = maxlen - len(seq)
+            if padding == 'pre':
+                seq = [value] * pad_len + list(seq)
+            else:
+                seq = list(seq) + [value] * pad_len
+        padded_sequences.append(seq)
+    return np.array(padded_sequences)
 
 def get_linguistic_features(text, num_features=3):
     """
