@@ -1,17 +1,9 @@
 import streamlit as st
 import numpy as np
-import pickle
 import os
-import sys
 import onnxruntime as ort
 
-# Workaround for Keras 3 pickle load compatibility with Keras 2 tokenizer
-try:
-    import keras.src.legacy.preprocessing.text
-    sys.modules['keras.src.preprocessing.text'] = keras.src.legacy.preprocessing.text
-except ImportError:
-    pass
-
+from src.tokenizer_compat import load_tokenizer
 from src.utils import get_linguistic_features, preprocess_text
 
 # Configuration
@@ -70,8 +62,7 @@ def load_resources():
         return None, None, None, None
     
     session = ort.InferenceSession(MODEL_PATH)
-    with open(TOKENIZER_PATH, 'rb') as handle:
-        tokenizer = pickle.load(handle)
+    tokenizer = load_tokenizer(TOKENIZER_PATH)
 
     max_seq_length = get_static_dimension(session.get_inputs()[0].shape[1], DEFAULT_MAX_SEQ_LENGTH)
     num_ling_features = get_static_dimension(session.get_inputs()[1].shape[1], 2)
