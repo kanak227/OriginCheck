@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import os
 import sys
+import onnxruntime as ort
 
 # Workaround for Keras 3 pickle load compatibility with Keras 2 tokenizer
 try:
@@ -12,12 +13,11 @@ except ImportError:
     pass
 
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from tensorflow.keras.models import load_model
 from src.utils import get_linguistic_features, preprocess_text
 
 # Configuration
-MAX_SEQ_LENGTH = 250
-MODEL_PATH = 'models/checkorigin_model.h5'
+MAX_SEQ_LENGTH = 150
+MODEL_PATH = 'models/checkorigin_model.onnx'
 TOKENIZER_PATH = 'models/tokenizer.pickle'
 TEST_DATA_PATH = 'data/reddit_filtered_dataset.csv'
 
@@ -27,7 +27,7 @@ def evaluate():
         print("Error: Model or Tokenizer not found.")
         return
 
-    model = load_model(MODEL_PATH)
+    model = ort.InferenceSession(MODEL_PATH)
     with open(TOKENIZER_PATH, 'rb') as handle:
         tokenizer = pickle.load(handle)
 
@@ -35,8 +35,13 @@ def evaluate():
     df = pd.read_csv(TEST_DATA_PATH)
     df.dropna(inplace=True)
     
-    # Take a sample if dataset is too large, or just use whole for evaluation
-    # df = df.sample(1000) 
+    # Map columns if necessary
+    if 'Data' in df.columns:
+        df.rename(columns={'Data': 'text'}, inplace=True)
+    if 'Labels' in df.columns:
+        df.rename(columns={'Labels': 'class'}, inplace=True)
+    elif 'Label' in df.columns:
+        df.rename(columns={'Label': 'class'}, inplace=True)
     
     texts = df['text'].tolist()
     labels = df['class'].tolist()
@@ -45,7 +50,9 @@ def evaluate():
     
     # Determine expected linguistic feature count from model
     try:
-        num_ling_features = model.input[1].shape[1]
+        num_ling_features = model.get_inputs()[1].shape[1]
+        if isinstance(num_ling_features, str) or num_ling_features is None:
+            num_ling_features = 2
     except:
         num_ling_features = 2
 
@@ -54,7 +61,15 @@ def evaluate():
     X_ling = np.array([get_linguistic_features(t, num_features=num_ling_features) for t in texts])
     
     # Predict
-    predictions = model.predict([X_padded, X_ling], batch_size=32)
+    input_name_1 = model.get_inputs()[0].name
+    input_name_2 = model.get_inputs()[1].name
+    output_name = model.get_outputs()[0].name
+    
+    padded_seq_onnx = X_padded.astype(np.int32)
+    ling_features_onnx = X_ling.astype(np.float32)
+    
+    outputs = model.run([output_name], {input_name_1: padded_seq_onnx, input_name_2: ling_features_onnx})
+    predictions = outputs[0]
     binary_predictions = (predictions >= 0.5).astype(int).flatten()
 
     # Metrics

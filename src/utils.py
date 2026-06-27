@@ -22,9 +22,8 @@ def pad_sequences(sequences, maxlen, padding='post', truncating='post', value=0)
 def get_linguistic_features(text, num_features=3):
     """
     Extracts statistical linguistic features from text.
-    - Text Length
     - Average Word Length
-    - Unique Word Ratio (if num_features=3)
+    - Unique Word Ratio
     """
     words = text.split()
     if not words:
@@ -32,11 +31,11 @@ def get_linguistic_features(text, num_features=3):
     
     text_length = len(words)
     avg_word_length = np.mean([len(word) for word in words])
+    unique_word_ratio = len(set(words)) / text_length if text_length > 0 else 0
     
     if num_features == 2:
-        return np.array([text_length, avg_word_length])
+        return np.array([avg_word_length, unique_word_ratio])
     
-    unique_word_ratio = len(set(words)) / text_length
     return np.array([text_length, avg_word_length, unique_word_ratio])
 
 def preprocess_text(text, tokenizer, max_length=250):
